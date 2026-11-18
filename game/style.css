@@ -1,0 +1,29 @@
+/* NEONWAKE page chrome — the game itself is drawn on the canvas. */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: #030308;
+  color: #9be8ff;
+  font-family: "Segoe UI", Verdana, Geneva, sans-serif;
+}
+#stage {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 12px;
+  background: radial-gradient(ellipse at 50% 40%, #0a0a24 0%, #030308 70%);
+}
+#game-canvas {
+  width: min(96vw, 1280px);
+  height: auto;
+  aspect-ratio: 1280 / 720;
+  background: #05050f;
+  border: 1px solid #123a4d;
+  box-shadow: 0 0 42px rgba(0, 229, 255, 0.18), 0 0 120px rgba(255, 43, 214, 0.08);
+  cursor: crosshair;
+  display: block;
+}
+#hint {
+  margin: 0; font-size: 13px; letter-spacing: 0.08em;
+  color: #4d7d94; text-transform: uppercase;
+}
