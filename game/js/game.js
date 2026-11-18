@@ -27,6 +27,7 @@ export class Game {
     this.rng = rng;
     this.bounds = { width: ARENA_WIDTH, height: ARENA_HEIGHT };
     this.state = 'title';
+    this.shotMode = false;
     this.bestScore = loadBestScore();
     this.time = 0;
     this.shake = 0;
@@ -382,7 +383,7 @@ export class Game {
     ctx.restore();
 
     if (this.state === 'title') {
-      drawTitleScreen(ctx, ARENA_WIDTH, ARENA_HEIGHT, this.time, this.bestScore);
+      drawTitleScreen(ctx, ARENA_WIDTH, ARENA_HEIGHT, this.time, this.bestScore, this.shotMode);
     } else if (this.state === 'playing' || this.state === 'paused') {
       drawHud(ctx, this);
       if (this.state === 'paused') drawPauseScreen(ctx, ARENA_WIDTH, ARENA_HEIGHT);
@@ -400,6 +401,7 @@ export class Game {
   // window.__shotReady. No audio is touched here.
 
   setupShotScene(scene) {
+    this.shotMode = true;
     const scripted = {
       moveVector: () => ({ x: 0.94, y: 0.34 }),
       mouseX: 980, mouseY: 300, firing: true, dashing: false,
@@ -434,20 +436,43 @@ export class Game {
         this.enemies.push(createEnemy('chaser', 760, 140, 5, this.rng));
         this.enemies.push(createEnemy('mini', 1060, 180, 5, this.rng));
       } else {
+        // Eight hostiles in frame: a chaser pack closing in, a shooter
+        // holding its ring, and a splitter with its mini escorts.
         this.enemies.push(createEnemy('chaser', 830, 230, 4, this.rng));
         this.enemies.push(createEnemy('chaser', 950, 430, 4, this.rng));
+        this.enemies.push(createEnemy('chaser', 1120, 470, 4, this.rng));
         this.enemies.push(createEnemy('shooter', 1020, 170, 4, this.rng));
         this.enemies.push(createEnemy('splitter', 880, 560, 4, this.rng));
         this.enemies.push(createEnemy('mini', 720, 150, 4, this.rng));
+        this.enemies.push(createEnemy('mini', 760, 470, 4, this.rng));
+        this.enemies.push(createEnemy('mini', 990, 610, 4, this.rng));
         this.pickups.drop(620, 250, 'rapid');
+        // Rapid fire for the staged volley: twice the bolts in flight.
+        this.player.grantRapid();
       }
       for (let i = 0; i < 26; i++) this.update(STEP);
       // Guaranteed set dressing: one fresh explosion and crossing orbs.
       const foe = this.enemies[0];
-      if (foe) this.particles.explosion(foe.x + 60, foe.y - 40, foe.color, 20, 250);
+      if (foe) this.particles.explosion(foe.x + 60, foe.y - 40, foe.color, 30, 320);
       this.shots.fireEnemyOrb(1050, 560, Math.PI * 0.92);
       this.shots.fireEnemyOrb(240, 160, Math.PI * 0.08);
-      this.particles.update(STEP);
+      if (scene === 'boss' && foe) {
+        // A radial ring of orbs already in flight around the Dreadnought,
+        // plus an aimed three-orb spread partway toward the player.
+        for (let i = 0; i < 12; i++) {
+          const a = (i / 12) * Math.PI * 2 + 0.26;
+          const d = foe.radius + 30 + (i % 3) * 24;
+          this.shots.fireEnemyOrb(foe.x + Math.cos(a) * d, foe.y + Math.sin(a) * d, a, 190);
+        }
+        const aim = Math.atan2(this.player.y - foe.y, this.player.x - foe.x);
+        for (const [dist, off] of [[150, -0.16], [218, 0], [286, 0.16]]) {
+          this.shots.fireEnemyOrb(
+            foe.x + Math.cos(aim) * dist, foe.y + Math.sin(aim) * dist, aim + off, 265);
+        }
+      }
+      // Let the fresh burst expand for a few ticks so it reads as a
+      // starburst rather than a single bright dot.
+      for (let i = 0; i < 5; i++) this.particles.update(STEP);
       this.render();
       return;
     }

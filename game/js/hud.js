@@ -174,7 +174,7 @@ function centreText(ctx, text, y, font, color, glow = 0) {
   ctx.restore();
 }
 
-export function drawTitleScreen(ctx, width, height, time, bestScore) {
+export function drawTitleScreen(ctx, width, height, time, bestScore, forcePrompt = false) {
   overlay(ctx, width, height, 0.45);
   const pulse = 1 + Math.sin(time * 2.2) * 0.02;
   ctx.save();
@@ -200,7 +200,9 @@ export function drawTitleScreen(ctx, width, height, time, bestScore) {
   if (bestScore > 0) {
     centreText(ctx, `BEST SCORE  ${bestScore}`, 470, 'bold 16px Verdana, sans-serif', '#ffcf3f');
   }
-  const blink = Math.sin(time * 4) > -0.2;
+  // Screenshot scenes pass forcePrompt so the launch prompt is always in
+  // frame instead of depending on where the blink cycle happens to land.
+  const blink = forcePrompt || Math.sin(time * 4) > -0.2;
   if (blink) {
     centreText(ctx, 'CLICK OR PRESS ENTER TO LAUNCH', 548, 'bold 22px Verdana, sans-serif', '#3dff7c', 16);
   }

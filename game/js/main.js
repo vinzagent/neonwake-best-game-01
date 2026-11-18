@@ -25,6 +25,11 @@ function seedFromParam(raw) {
 }
 
 if (shotScene) {
+  // The page hint strip sits below the canvas and lands half-clipped at
+  // the bottom edge of screenshot captures; hide it in shot mode. The
+  // title screen already lists the controls mid-canvas.
+  const hint = document.getElementById('hint');
+  if (hint) hint.style.display = 'none';
   const scene = SHOT_SCENES.includes(shotScene) ? shotScene : 'title';
   const game = new Game(ctx, null, null, createRng(seedFromParam(params.get('seed'))));
   game.setupShotScene(scene);
